@@ -149,4 +149,4 @@ visara/
 
 ## 👥 Team Legacy Strikers
 
-Built for **InnovaSolutions AI Hackathon 2025**
+Built for **InnovaSolutions AI Hackathon 2026**
