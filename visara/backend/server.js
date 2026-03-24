@@ -1,209 +1,159 @@
 import express from "express";
 import cors from "cors";
 import { v4 as uuidv4 } from "uuid";
-import { ops, matchByTags } from "./db.js";
-import { seed } from "./seed.js";
+import {
+  createSession, touchSession, getSession,
+  matchByTags,
+  getCart, addToCart, removeFromCart, clearCart,
+  getWishlist, addToWishlist, removeFromWishlist, isInWishlist,
+  saveHistory, getHistory, deleteHistory, clearHistory,
+} from "./db.js";
+import "./seed.js";
 
 const app = express();
-const PORT = 3001;
-
 app.use(cors({ origin: "http://localhost:5173" }));
-app.use(express.json({ limit: "50mb" }));
+app.use(express.json({ limit: "10mb" }));
 
-// Seed on startup
-await seed();
-
-// ============ SESSION ============
-app.post("/api/session", async (req, res) => {
+// ── Session ──────────────────────────────────────────────
+app.post("/api/session", (req, res) => {
   try {
-    const { sessionId } = req.body;
-
+    let { sessionId } = req.body;
     if (sessionId) {
-      const existing = await ops.getSession(sessionId);
+      const existing = getSession.get(sessionId);
       if (existing) {
-        await ops.touchSession(sessionId);
+        touchSession.run(sessionId);
         return res.json({ sessionId });
       }
     }
-
-    const newSessionId = uuidv4();
-    await ops.createSession(newSessionId);
-    res.json({ sessionId: newSessionId });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
+    sessionId = uuidv4();
+    createSession.run(sessionId);
+    res.json({ sessionId });
+  } catch (err) {
+    console.error("Session error:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ============ SEARCH ============
-app.post("/api/search", async (req, res) => {
+// ── Search ───────────────────────────────────────────────
+app.post("/api/search", (req, res) => {
   try {
     const { sessionId, category, tags, imageThumb } = req.body;
-
-    let isFood = false;
-    let matches = [];
-    let complements = [];
-    let swaps = [];
-    let groceryItems = [];
-
-    if (category === "food") {
-      isFood = true;
-      groceryItems = await matchByTags(tags, "grocery", 14);
-    } else {
-      matches = await matchByTags(tags, category, 6);
-      const matchIds = matches.map((m) => m.id);
-
-      complements = (await matchByTags(tags, null, 4, matchIds)).filter(
-        (c) => c.category !== category
-      );
-      const complementIds = complements.map((c) => c.id);
-
-      swaps = await matchByTags(tags, category, 3, [...matchIds, ...complementIds]);
+    if (!sessionId || !category || !tags?.length) {
+      return res.status(400).json({ error: "sessionId, category and tags required" });
     }
 
-    const results = {
-      matches,
-      complements,
-      swaps,
-      groceryItems,
-    };
+    const isFood = category === "food";
+    let matches = [], complements = [], swaps = [], groceryItems = [];
 
-    const tagsJson = JSON.stringify(tags);
-    const resultsJson = JSON.stringify(results);
-
-    await ops.saveHistory(sessionId, imageThumb, category, tagsJson, resultsJson);
-
-    res.json({
-      isFood,
-      matches,
-      complements,
-      swaps,
-      groceryItems,
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// ============ CART ============
-app.get("/api/cart/:sid", async (req, res) => {
-  try {
-    const { sid } = req.params;
-    const items = await ops.getCart(sid);
-    res.json(items);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.post("/api/cart", async (req, res) => {
-  try {
-    const { sessionId, productId } = req.body;
-    await ops.addToCart(sessionId, productId);
-    const items = await ops.getCart(sessionId);
-    res.json(items);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.delete("/api/cart/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    await ops.removeFromCart(id);
-    res.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.delete("/api/cart/clear/:sid", async (req, res) => {
-  try {
-    const { sid } = req.params;
-    await ops.clearCart(sid);
-    res.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// ============ WISHLIST ============
-app.get("/api/wishlist/:sid", async (req, res) => {
-  try {
-    const { sid } = req.params;
-    const items = await ops.getWishlist(sid);
-    res.json(items);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.post("/api/wishlist", async (req, res) => {
-  try {
-    const { sessionId, productId } = req.body;
-    
-    const existing = await ops.isInWishlist(sessionId, productId);
-    
-    if (existing) {
-      await ops.removeFromWishlist(sessionId, productId);
-      res.json({ saved: false });
+    if (isFood) {
+      groceryItems = matchByTags(tags, "grocery", 14);
     } else {
-      await ops.addToWishlist(sessionId, productId);
-      res.json({ saved: true });
+      matches = matchByTags(tags, category, 6);
+      const matchIds = matches.map(p => p.id);
+
+      // Complement category rules — only suggest related categories
+      const complementCategories = {
+        fashion:     ["fashion"],       // accessories, shoes, bags from fashion only
+        home:        ["home"],          // decor, lighting from home only
+        electronics: ["electronics"],   // related tech only
+      };
+      const allowedCats = complementCategories[category] || [category];
+
+      // Get complements from allowed categories, excluding exact matches
+      complements = allowedCats.flatMap(cat =>
+        matchByTags(tags, cat, 6, matchIds)
+      ).filter(p => !matchIds.includes(p.id))
+       .sort((a, b) => b.score - a.score)
+       .slice(0, 4);
+
+      const compIds = complements.map(p => p.id);
+      swaps = matchByTags(tags, category, 3, [...matchIds, ...compIds]);
     }
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
+
+    const result = { category, tags, isFood, matches, complements, swaps, groceryItems };
+    saveHistory.run(sessionId, imageThumb || null, category, JSON.stringify(tags), JSON.stringify(result));
+    res.json(result);
+  } catch (err) {
+    console.error("Search error:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ============ HISTORY ============
-app.get("/api/history/:sid", async (req, res) => {
+// ── Cart ─────────────────────────────────────────────────
+app.get("/api/cart/:sid", (req, res) => {
   try {
-    const { sid } = req.params;
-    const items = await ops.getHistory(sid);
-    
-    const parsed = items.map((h) => ({
+    res.json(getCart.all(req.params.sid));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post("/api/cart", (req, res) => {
+  try {
+    const { sessionId, productId } = req.body;
+    addToCart.run(sessionId, productId);
+    res.json(getCart.all(sessionId));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete("/api/cart/clear/:sid", (req, res) => {
+  try {
+    clearCart.run(req.params.sid);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete("/api/cart/:id", (req, res) => {
+  try {
+    removeFromCart.run(req.params.id);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Wishlist ─────────────────────────────────────────────
+app.get("/api/wishlist/:sid", (req, res) => {
+  try {
+    res.json(getWishlist.all(req.params.sid));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post("/api/wishlist", (req, res) => {
+  try {
+    const { sessionId, productId } = req.body;
+    const exists = isInWishlist.get(sessionId, productId);
+    if (exists) {
+      removeFromWishlist.run(sessionId, productId);
+      return res.json({ saved: false });
+    }
+    addToWishlist.run(sessionId, productId);
+    res.json({ saved: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── History ──────────────────────────────────────────────
+app.get("/api/history/:sid", (req, res) => {
+  try {
+    const rows = getHistory.all(req.params.sid).map(h => ({
       ...h,
-      tags: h.tags ? JSON.parse(h.tags) : [],
-      results: h.results ? JSON.parse(h.results) : {},
+      tags: JSON.parse(h.tags || "[]"),
+      results: JSON.parse(h.results || "{}"),
     }));
-
-    res.json(parsed);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
+    res.json(rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.delete("/api/history/:id", async (req, res) => {
+app.delete("/api/history/clear/:sid", (req, res) => {
   try {
-    const { id } = req.params;
-    await ops.deleteHistory(id);
-    res.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
+    clearHistory.run(req.params.sid);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.delete("/api/history/clear/:sid", async (req, res) => {
+app.delete("/api/history/:id", (req, res) => {
   try {
-    const { sid } = req.params;
-    await ops.clearHistory(sid);
-    res.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
+    deleteHistory.run(req.params.id);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 VISARA Backend running on http://localhost:${PORT}`);
-});
+// ── Start ────────────────────────────────────────────────
+const PORT = 3001;
+app.listen(PORT, () => console.log(`VISARA backend running on http://localhost:${PORT}`));
