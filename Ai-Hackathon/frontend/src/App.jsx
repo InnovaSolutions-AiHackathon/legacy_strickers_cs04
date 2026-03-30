@@ -295,8 +295,8 @@ export default function App() {
   const Nav = ({ back }) => (
     <nav style={{ padding:"13px 24px", display:"flex", justifyContent:"space-between", alignItems:"center", borderBottom:`1px solid ${BD}`, position:"sticky", top:0, zIndex:10, background:"rgba(8,8,8,0.96)", backdropFilter:"blur(12px)" }}>
       <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
-        <span style={{ fontSize:"17px", fontWeight:900, letterSpacing:"4px", color:G }}>INNOVA SOLUTIONS</span>
-        <span style={{ fontSize:"9px", letterSpacing:"2px", color:MUT }}>AI HACKATHON</span>
+        <span style={{ fontSize:"17px", fontWeight:900, letterSpacing:"4px", color:G }}>LensCartAI</span>
+        <span style={{ fontSize:"9px", letterSpacing:"2px", color:MUT }}>VISUAL DISCOVERY</span>
       </div>
       <div style={{ display:"flex", gap:"8px", alignItems:"center" }}>
         <button onClick={() => { setShowHistory(!showHistory); setShowCart(false); }} style={{ padding:"5px 13px", borderRadius:"8px", background:showHistory?"#1a1505":"transparent", border:`1px solid ${showHistory?G:BD}`, fontSize:"12px", color:showHistory?G:MUT, cursor:"pointer" }}>
@@ -348,15 +348,16 @@ export default function App() {
       ) : (
         <div style={{ maxWidth:"520px", margin:"0 auto", padding:"52px 22px 80px", textAlign:"center" }}>
           <div style={{ display:"inline-flex", gap:"6px", padding:"5px 14px", borderRadius:"20px", border:`1px solid ${G}33`, background:"#1a150530", fontSize:"10px", letterSpacing:"2px", color:G, marginBottom:"24px" }}>
-            ⚡ INNOVA · SOLUTIONS · AI · HACKATHON
+            🛍️ SEE IT · SHOP IT · POWERED BY AI
           </div>
           <h1 style={{ fontSize:"clamp(36px,7vw,68px)", fontWeight:900, lineHeight:1.05, marginBottom:"16px", letterSpacing:"-2px" }}>
-            Upload.<br />
-            <span style={{ background:`linear-gradient(135deg,${G},#e8c88a)`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Discover.</span><br />
-            Shop.
+            Snap it.<br />
+            <span style={{ background:`linear-gradient(135deg,${G},#e8c88a)`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Match it.</span><br />
+            Shop it.
           </h1>
           <p style={{ fontSize:"14px", color:MUT, lineHeight:1.9, marginBottom:"32px" }}>
-            Upload an image · pick category · choose style tags<br />Browse matched products across the application
+            Snap any image · Claude AI detects instantly · Browse matched products<br />
+            <span style={{ fontSize:"12px", color:G }}>🏆 InnovaSolutions AI Hackathon 2025 · Team Legacy Strikers · CS04</span>
           </p>
           <div onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
             onDrop={e => { e.preventDefault(); setDrag(false); loadFile(e.dataTransfer.files[0]); }}
@@ -386,7 +387,7 @@ export default function App() {
                 <div style={{ padding:"12px 16px", borderRadius:"12px", background:"#001a0a", border:`1px solid ${GRN}44`, display:"flex", flexDirection:"column", gap:"8px" }}>
                   <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
                     <span style={{ fontSize:"16px" }}>✅</span>
-                    <span style={{ fontSize:"12px", color:GRN, fontWeight:700, letterSpacing:"0.5px" }}>Innovative AI Detected</span>
+                    <span style={{ fontSize:"12px", color:GRN, fontWeight:700, letterSpacing:"0.5px" }}>Claude AI Detected</span>
                   </div>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:"10px", paddingLeft:"24px" }}>
                     <div style={{ display:"flex", flexDirection:"column", gap:"2px" }}>

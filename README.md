@@ -1,18 +1,18 @@
-# 🛍️ VISARA – Visual Discovery Retail Platform
+# 🛍️ LensCartAI – Visual Discovery Retail Platform
 
 > **Transform retail from keyword search to visual discovery.**
 > Upload any image → Claude AI detects what it is → Browse matched products instantly.
 
 <br/>
 
-## 🏆 InnovaSolutions AI Hackathon 2026
+## 🏆 InnovaSolutions AI Hackathon 2025
 ### Team: Legacy Strikers · CS04
 
 ---
 
 ## 🎯 Project Overview
 
-VISARA bridges the gap between real-world inspiration and online shopping. Users simply upload any image — a jacket they saw on the street, a dish they want to cook, a lamp in a magazine — and the AI instantly finds matching products from our catalog.
+LensCartAI bridges the gap between real-world inspiration and online shopping. Users simply upload any image — a jacket they saw on the street, a dish they want to cook, a lamp in a magazine — and the AI instantly finds matching products from our catalog.
 
 ### 3 AI-Powered Pillars
 
@@ -199,4 +199,8 @@ visara/
 
 ## 👥 Team Legacy Strikers
 
-**Built for InnovaSolutions AI Hackathon 2026** 🚀
+| Member | Role |
+|---|---|
+| Prem Kumar | Full Stack Developer |
+
+**Built for InnovaSolutions AI Hackathon 2025** 🚀
