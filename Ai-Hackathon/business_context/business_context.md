@@ -1,6 +1,6 @@
 # LensCartAI – Business Context
 ## Visual Discovery Retail Platform
-### Team: Legacy Strikers (CS04) · InnovaSolutions AI Hackathon 2025
+### Team: Legacy Strikers (CS04) · InnovaSolutions AI Hackathon 2026
 
 ---
 
@@ -130,7 +130,7 @@ The original hackathon prompt asked:
 
 **Team Name:** Legacy Strikers
 **Team ID:** CS04
-**Hackathon:** InnovaSolutions AI Hackathon 2025
+**Hackathon:** InnovaSolutions AI Hackathon 2026
 
 ---
 

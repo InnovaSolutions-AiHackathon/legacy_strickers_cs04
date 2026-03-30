@@ -5,7 +5,7 @@
 
 <br/>
 
-## 🏆 InnovaSolutions AI Hackathon 2025
+## 🏆 InnovaSolutions AI Hackathon 2026
 ### Team: Legacy Strikers · CS04
 
 ---
@@ -199,8 +199,5 @@ visara/
 
 ## 👥 Team Legacy Strikers
 
-| Member | Role |
-|---|---|
-| Prem Kumar | Full Stack Developer |
 
-**Built for InnovaSolutions AI Hackathon 2025** 🚀
+**Built for InnovaSolutions AI Hackathon 2026** 🚀

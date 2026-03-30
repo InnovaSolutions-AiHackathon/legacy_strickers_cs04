@@ -357,7 +357,7 @@ export default function App() {
           </h1>
           <p style={{ fontSize:"14px", color:MUT, lineHeight:1.9, marginBottom:"32px" }}>
             Snap any image · Claude AI detects instantly · Browse matched products<br />
-            <span style={{ fontSize:"12px", color:G }}>🏆 InnovaSolutions AI Hackathon 2025 · Team Legacy Strikers · CS04</span>
+            <span style={{ fontSize:"12px", color:G }}>🏆 InnovaSolutions AI Hackathon 2026 · Team Legacy Strikers · CS04</span>
           </p>
           <div onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
             onDrop={e => { e.preventDefault(); setDrag(false); loadFile(e.dataTransfer.files[0]); }}
